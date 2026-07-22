@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NexusCSV - CSV to Nested JSON Converter</title>
+  <meta name="description" content="A powerful developer utility to convert CSV data to nested JSON objects with automatic dot-notation detection and custom nesting paths.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- PapaParse for robust CSV parsing -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <!-- Lucide Icons for premium developer icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <i data-lucide="file-json" class="logo-icon"></i>
+        <div>
+          <h1>NexusCSV</h1>
+          <p class="subtitle">Convert flat CSV data into beautifully nested JSON structures</p>
+        </div>
+      </div>
+      <div class="header-controls">
+        <a href="https://www.buymeacoffee.com/ritabanm" target="_blank" class="bmc-btn">
+          <i data-lucide="coffee"></i>
+          <span>Buy me a coffee</span>
+        </a>
+        <label class="toggle-switch">
+          <input type="checkbox" id="auto-nest-toggle" checked>
+          <span class="slider"></span>
+          <span class="label-text">Auto-detect Nesting (Dot-notation)</span>
+        </label>
+      </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="app-main">
+      <!-- Left Panel: Input & Schema Configuration -->
+      <section class="panel panel-input" id="input-panel">
+        
+        <!-- Tab Navigation for CSV Input -->
+        <div class="tabs-header">
+          <button class="tab-btn active" data-tab="upload-tab">
+            <i data-lucide="upload-cloud"></i> Upload File
+          </button>
+          <button class="tab-btn" data-tab="paste-tab">
+            <i data-lucide="clipboard-paste"></i> Paste Raw CSV
+          </button>
+        </div>
+
+        <div class="tab-contents">
+          <!-- Upload Tab -->
+          <div class="tab-content active" id="upload-tab">
+            <div class="dropzone" id="csv-dropzone">
+              <input type="file" id="csv-file-input" accept=".csv,text/csv" hidden>
+              <i data-lucide="file-spreadsheet" class="dropzone-icon"></i>
+              <div class="dropzone-text">
+                <h3>Drag & drop your CSV file here</h3>
+                <p>or <span>browse your computer</span></p>
+              </div>
+              <p class="dropzone-limit">Supports standard delimited text files (.csv, .tsv, .txt)</p>
+            </div>
+            <div id="file-info-badge" class="file-badge hidden">
+              <i data-lucide="file-check"></i>
+              <span id="file-badge-name">filename.csv</span>
+              <button id="remove-file-btn" class="icon-btn-danger" title="Remove file">
+                <i data-lucide="trash-2"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Paste Tab -->
+          <div class="tab-content" id="paste-tab">
+            <div class="textarea-wrapper">
+              <textarea id="csv-paste-area" placeholder="Paste your CSV data here...&#10;e.g.&#10;id,user.name,user.email,address.city,active&#10;1,Jane Doe,jane@example.com,Austin,true&#10;2,John Smith,john@example.com,Denver,false" spellcheck="false"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Parsing Settings -->
+        <div class="panel-card settings-card">
+          <div class="card-header">
+            <i data-lucide="sliders"></i>
+            <h4>CSV Parsing Settings</h4>
+          </div>
+          <div class="settings-grid">
+            <div class="setting-group">
+              <label for="csv-delimiter">Delimiter</label>
+              <select id="csv-delimiter">
+                <option value="auto">Auto-detect</option>
+                <option value=",">Comma (,)</option>
+                <option value=";">Semicolon (;)</option>
+                <option value="&#9;">Tab (\t)</option>
+                <option value="|">Pipe (|)</option>
+              </select>
+            </div>
+            <div class="setting-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="csv-has-header" checked>
+                <span>First row is header</span>
+              </label>
+            </div>
+            <div class="setting-group checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="csv-skip-empty" checked>
+                <span>Skip empty lines</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Schema Mapping Panel (Visible once parsed) -->
+        <div class="panel-card schema-card hidden" id="schema-card">
+          <div class="schema-header-actions">
+            <div class="card-header">
+              <i data-lucide="git-fork"></i>
+              <h4>Schema Nesting & Types</h4>
+            </div>
+            <div class="schema-bulk-actions">
+              <button id="bulk-include-all" class="text-btn">Include All</button>
+              <span class="divider">|</span>
+              <button id="bulk-exclude-all" class="text-btn">Exclude All</button>
+              <span class="divider">|</span>
+              <button id="bulk-reset-paths" class="text-btn">Reset Paths</button>
+            </div>
+          </div>
+
+          <div class="search-filter-wrapper">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="schema-search" placeholder="Filter columns by name or output path..." class="search-input">
+          </div>
+
+          <div class="schema-table-container">
+            <table class="schema-table">
+              <thead>
+                <tr>
+                  <th width="40px" style="text-align: center;">Inc.</th>
+                  <th>CSV Column</th>
+                  <th>Target JSON Path (edit for nesting)</th>
+                  <th width="140px">Cast Type</th>
+                </tr>
+              </thead>
+              <tbody id="schema-tbody">
+                <!-- Dynamically generated rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Panel: JSON Preview Output -->
+      <section class="panel panel-output" id="output-panel">
+        <div class="panel-card output-card">
+          <div class="output-header">
+            <div class="card-header">
+              <i data-lucide="braces"></i>
+              <h4>JSON Output</h4>
+              <span id="output-stats" class="status-badge hidden">0 records</span>
+            </div>
+            <div class="output-actions">
+              <!-- Indent Format controls -->
+              <div class="format-selector">
+                <button class="format-btn active" data-indent="2">2 Spaces</button>
+                <button class="format-btn" data-indent="4">4 Spaces</button>
+                <button class="format-btn" data-indent="minify">Minified</button>
+              </div>
+              <button id="copy-json-btn" class="primary-btn sm-btn">
+                <i data-lucide="copy" class="btn-icon"></i>
+                <span class="btn-text">Copy</span>
+              </button>
+              <button id="download-json-btn" class="primary-btn sm-btn">
+                <i data-lucide="download" class="btn-icon"></i>
+                <span class="btn-text">Download</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Code View Area -->
+          <div class="code-viewer">
+            <!-- Empty state -->
+            <div class="empty-output-state" id="empty-output-state">
+              <i data-lucide="file-code" class="empty-icon"></i>
+              <h3>Awaiting CSV Input</h3>
+              <p>Upload a CSV file or paste raw delimited text on the left to see the generated JSON structure.</p>
+              <button id="load-sample-btn" class="secondary-btn">Load Sample Data</button>
+            </div>
+            <!-- JSON Code Output -->
+            <pre class="json-code-container hidden" id="json-code-container"><code id="json-code-output"></code></pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>NexusCSV • Runs entirely in your browser. No data is sent to any server.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
