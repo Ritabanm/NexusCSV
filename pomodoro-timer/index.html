@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PomoLog - Pomodoro Timer & Logger</title>
+  <meta name="description" content="A privacy-first Pomodoro timer that tracks your session history locally and lets you export it as CSV.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Header -->
+    <header class="app-header">
+      <div class="header-logo">
+        <i data-lucide="timer" class="logo-icon"></i>
+        <div>
+          <h1>PomoLog</h1>
+          <p class="subtitle">Focus timer & local work logging tool</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="open-settings-btn" class="icon-btn" title="Timer Settings">
+          <i data-lucide="settings"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Grid -->
+    <main class="app-main">
+      <!-- Left Column: Clock & Task Control -->
+      <section class="panel panel-timer">
+        <div class="panel-card timer-card">
+          
+          <!-- State Selector Tabs -->
+          <div class="timer-modes">
+            <button class="mode-btn active" id="mode-focus">
+              <i data-lucide="brain"></i> Focus Session
+            </button>
+            <button class="mode-btn" id="mode-break">
+              <i data-lucide="coffee"></i> Short Break
+            </button>
+          </div>
+
+          <!-- Circular Clock Progress -->
+          <div class="clock-display-wrapper">
+            <div class="svg-container">
+              <svg class="progress-ring" width="280" height="280">
+                <circle class="progress-ring-bg" stroke="rgba(255, 255, 255, 0.04)" stroke-width="8" fill="transparent" r="130" cx="140" cy="140"/>
+                <circle class="progress-ring-circle" id="timer-progress" stroke="#ef4444" stroke-width="8" fill="transparent" r="130" cx="140" cy="140" stroke-linecap="round"/>
+              </svg>
+            </div>
+            
+            <div class="clock-content">
+              <span id="time-countdown" class="countdown-text">25:00</span>
+              <span id="state-badge" class="state-badge focus-badge">FOCUS</span>
+            </div>
+          </div>
+
+          <!-- Timer Actions Control -->
+          <div class="timer-controls">
+            <button id="reset-timer-btn" class="control-btn secondary-btn-icon" title="Reset Timer">
+              <i data-lucide="rotate-ccw"></i>
+            </button>
+            <button id="start-pause-btn" class="control-btn main-play-btn" title="Start Session">
+              <i data-lucide="play" id="play-pause-icon"></i>
+            </button>
+            <button id="skip-timer-btn" class="control-btn secondary-btn-icon" title="Skip Session">
+              <i data-lucide="skip-forward"></i>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Task Input Card -->
+        <div class="panel-card task-card">
+          <div class="card-header">
+            <i data-lucide="target"></i>
+            <h4>Current Objective</h4>
+          </div>
+          <div class="task-input-wrapper">
+            <input type="text" id="task-objective-input" placeholder="What are you working on right now? (e.g. Code refactoring)" autocomplete="off" spellcheck="true">
+            <p class="task-hint">Enter your objective before starting to record it in the history log.</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Right Column: History Logs & Statistics -->
+      <section class="panel panel-history">
+        <div class="panel-card history-card">
+          <div class="history-header">
+            <div class="card-header">
+              <i data-lucide="history"></i>
+              <h4>Work Logs</h4>
+              <span id="session-count-badge" class="status-badge">0 sessions</span>
+            </div>
+            <div class="history-actions">
+              <button id="export-csv-btn" class="primary-btn sm-btn" disabled>
+                <i data-lucide="download"></i> Export CSV
+              </button>
+              <button id="clear-history-btn" class="danger-text-btn" title="Clear All History">
+                <i data-lucide="trash-2"></i> Clear
+              </button>
+            </div>
+          </div>
+
+          <!-- History Table/List -->
+          <div class="logs-container">
+            <div class="empty-logs-state" id="empty-logs-state">
+              <i data-lucide="clipboard-list" class="empty-icon"></i>
+              <h3>No Sessions Logged Yet</h3>
+              <p>Completed focus sessions will be saved automatically to local storage and listed here.</p>
+            </div>
+
+            <!-- Scrollable Log Table -->
+            <div class="table-wrapper hidden" id="logs-table-wrapper">
+              <table class="logs-table">
+                <thead>
+                  <tr>
+                    <th>Date & Time</th>
+                    <th>Type</th>
+                    <th>Duration</th>
+                    <th>Objective</th>
+                    <th width="40px"></th>
+                  </tr>
+                </thead>
+                <tbody id="logs-tbody">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <!-- Settings Dialog Modal (Hidden by Default) -->
+    <div class="modal-overlay hidden" id="settings-modal">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Timer Settings</h3>
+          <button id="close-settings-btn" class="modal-close">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="settings-form-group">
+            <label for="settings-focus-time">Focus Duration (minutes)</label>
+            <input type="number" id="settings-focus-time" min="1" max="120" value="25">
+          </div>
+          <div class="settings-form-group">
+            <label for="settings-break-time">Break Duration (minutes)</label>
+            <input type="number" id="settings-break-time" min="1" max="60" value="5">
+          </div>
+          <div class="settings-form-group">
+            <label for="settings-volume">Alert Volume</label>
+            <div class="range-slider-wrapper">
+              <i data-lucide="volume-1"></i>
+              <input type="range" id="settings-volume" min="0" max="100" value="50">
+              <i data-lucide="volume-2"></i>
+            </div>
+          </div>
+          <div class="settings-info-badge">
+            <i data-lucide="info"></i>
+            <p>Session data is stored securely in your local browser storage (localStorage) and never uploaded.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="reset-settings-btn" class="secondary-btn">Reset Defaults</button>
+          <button id="save-settings-btn" class="primary-btn">Save Configurations</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>PomoLog • Self-contained Pomodoro tracker. Runs entirely in your local sandbox.</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

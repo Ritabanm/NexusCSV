@@ -1,0 +1,14 @@
+{
+  "name": "pomolog",
+  "version": "1.0.0",
+  "description": "Privacy-first Pomodoro timer with local storage logging and CSV exporting.",
+  "main": "app.js",
+  "scripts": {
+    "dev": "vite --port 3001 --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "vite": "^5.2.0"
+  }
+}
