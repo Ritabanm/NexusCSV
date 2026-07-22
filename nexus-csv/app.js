@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileBadgeName = document.getElementById('file-badge-name');
   const removeFileBtn = document.getElementById('remove-file-btn');
   const csvPasteArea = document.getElementById('csv-paste-area');
-  
+
   // Settings
   const csvDelimiter = document.getElementById('csv-delimiter');
   const csvHasHeader = document.getElementById('csv-has-header');
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const reader = new FileReader();
     reader.onload = (e) => {
       rawCsvData = e.target.result;
-      
+
       // Update UI File badge
       fileBadgeName.textContent = file.name;
       fileInfoBadge.classList.remove('hidden');
@@ -225,10 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
     schema = parsedHeaders.map((header) => {
       // Auto detect target nested path
       const targetPath = header;
-      
+
       // Auto detect type from first few values in rows
       let detectedType = 'auto';
-      
+
       return {
         name: header,
         targetPath: targetPath,
@@ -252,9 +252,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     schema.forEach((col, index) => {
       // Filter if search is active
-      if (searchVal && 
-          !col.name.toLowerCase().includes(searchVal) && 
-          !col.targetPath.toLowerCase().includes(searchVal)) {
+      if (searchVal &&
+        !col.name.toLowerCase().includes(searchVal) &&
+        !col.targetPath.toLowerCase().includes(searchVal)) {
         return;
       }
 
@@ -352,11 +352,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
       schema.forEach((col, idx) => {
         if (!col.included) return;
-        
+
         // CSV value can be undefined if row has fewer elements than headers
         const rawValue = row[idx] !== undefined ? row[idx] : '';
         const castedValue = castValue(rawValue, col.type);
-        
+
         if (col.targetPath) {
           hasData = true;
           if (isAutoNest && col.targetPath.includes('.')) {
@@ -388,16 +388,16 @@ document.addEventListener('DOMContentLoaded', () => {
     switch (type) {
       case 'string':
         return val.toString();
-        
+
       case 'number':
         if (trimmedVal === '') return null;
         const num = Number(trimmedVal);
         return isNaN(num) ? null : num;
-        
+
       case 'boolean':
         const lower = trimmedVal.toLowerCase();
         return lower === 'true' || lower === '1' || lower === 'yes';
-        
+
       case 'array':
         if (trimmedVal === '') return [];
         // Split by comma, trim whitespace, and auto-cast members
@@ -411,10 +411,10 @@ document.addEventListener('DOMContentLoaded', () => {
           if (trimmedItem.toLowerCase() === 'false') return false;
           return trimmedItem;
         });
-        
+
       case 'null':
         return null;
-        
+
       case 'auto':
       default:
         // Try Number
@@ -470,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
       jsonCodeOutput.innerHTML = syntaxHighlight(jsonString);
       outputStats.textContent = `${jsonObj.length} records`;
     }
-    
+
     outputStats.classList.remove('hidden');
   }
 
@@ -478,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function syntaxHighlight(json) {
     // Escape standard HTML chars to avoid XSS/rendering bugs
     json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    
+
     return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
       let cls = 'json-number';
       if (/^"/.test(match)) {
@@ -507,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function showError(msg) {
     clearOutput();
     emptyOutputState.classList.remove('hidden');
-    
+
     // Custom error state in container
     const originalContent = emptyOutputState.innerHTML;
     emptyOutputState.innerHTML = `
@@ -553,12 +553,12 @@ document.addEventListener('DOMContentLoaded', () => {
     navigator.clipboard.writeText(textToCopy).then(() => {
       // Visual feedback via temporary notification
       showToast('JSON copied to clipboard!');
-      
+
       // Temporary button icon update
       const btnText = copyJsonBtn.querySelector('.btn-text');
       const originalText = btnText.textContent;
       btnText.textContent = 'Copied!';
-      
+
       setTimeout(() => {
         btnText.textContent = originalText;
       }, 2000);
@@ -575,10 +575,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const blob = new Blob([textToDownload], { type: 'application/json;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    
+
     // Create output filename: replace .csv with .json or append .json
     let outName = parsedFileName.replace(/\.[^/.]+$/, "") + '.json';
-    
+
     link.setAttribute('href', url);
     link.setAttribute('download', outName);
     link.style.visibility = 'hidden';
@@ -586,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     showToast(`Downloaded ${outName}`);
   });
 
