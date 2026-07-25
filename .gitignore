@@ -19,3 +19,11 @@ yarn-debug.log*
 Thumbs.db
 .idea/
 .vscode/
+
+# Ignore other developer tools in this repository
+color-palette-extractor/
+texit-pdf/
+privacy-policy-generator/
+qreative-qr/
+
+
