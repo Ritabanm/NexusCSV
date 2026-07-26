@@ -59,3 +59,9 @@ This project is licensed under the [MIT License](LICENSE) - see the file for det
 ---
 
 *Made with ☕ by [ritabanm](https://github.com/ritabanm).*
+
+💖 Support the Project
+NexusCSV is built and maintained as a completely free, open-source tool. If it saves you time, helps your business, or you just want to support the project, feel free to buy me a coffee!
+
+☕ Buy Me A Coffee
+☕ **[Buy Me A Coffee](https://buymeacoffee.com/ritabanm)**
